@@ -2,7 +2,7 @@ import { h, Component } from 'preact';
 import * as THREE from 'three';
 import style from './style';
 
-const TOUCH = 'Touch' in window && navigator.maxTouchPoints>1;
+const TOUCH = typeof window !== "undefined" && 'Touch' in window && navigator.maxTouchPoints>1;
 const coords = e => ((e = e.touches && e.touches[0] || e), ({ x:e.pageX, y:e.pageY }));
 
 export default class SceneContainer extends Component {
@@ -44,7 +44,6 @@ export default class SceneContainer extends Component {
 	render({}, { zoom=1, rotateX=0, rotateY=0 }) {
 		return (
 			<div class={style.scene}>
-				<p>ThreeJS scene goes here 2.</p>
 				<div class={style.main} {...this.events}>
 					<Scene {...{ zoom, rotateX, rotateY }} />
 				</div>
