@@ -62,7 +62,7 @@ class Scene extends Component {
 		this.rerender();
 	}
 
-	setup() {
+	setupThree() {
 		let { width, height } = this.base.getBoundingClientRect();
 		this.renderer = new THREE.WebGLRenderer();
 		this.renderer.setSize(width*2, height*2);
@@ -89,7 +89,7 @@ class Scene extends Component {
 	}
 
 	componentDidMount() {
-		setTimeout( () => this.setup(), 1);
+		setTimeout( () => this.setupThree(), 1);
 	}
 
 	componentWillReceiveProps() {
@@ -106,6 +106,57 @@ class Scene extends Component {
 			new THREE.MeshLambertMaterial({ color: 0xFF0000 })
 		);
 		this.scene.add(this.object);
+	}
+
+	renderText() {
+		const loader = new THREE.FontLoader();
+		loader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+			var xMid, text;
+			var textShape = new THREE.BufferGeometry();
+			var color = 0x006699;
+			var matDark = new THREE.LineBasicMaterial( {
+				color: color,
+				side: THREE.DoubleSide
+			} );
+			var matLite = new THREE.MeshBasicMaterial( {
+				color: color,
+				transparent: true,
+				opacity: 0.4,
+				side: THREE.DoubleSide
+			} );
+			var message = "   Three.js\nSimple text.";
+			var shapes = font.generateShapes( message, 100, 2 );
+			var geometry = new THREE.ShapeGeometry( shapes );
+			geometry.computeBoundingBox();
+			xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
+			geometry.translate( xMid, 0, 0 );
+			// make shape ( N.B. edge view not visible )
+			textShape.fromGeometry( geometry );
+			text = new THREE.Mesh( textShape, matLite );
+			text.position.z = - 150;
+			this.scene.add( text );
+			// make line shape ( N.B. edge view remains visible )
+			var holeShapes = [];
+			for ( var i = 0; i < shapes.length; i ++ ) {
+				var shape = shapes[ i ];
+				if ( shape.holes && shape.holes.length > 0 ) {
+					for ( var j = 0; j < shape.holes.length; j ++ ) {
+						var hole = shape.holes[ j ];
+						holeShapes.push( hole );
+					}
+				}
+			}
+			shapes.push.apply( shapes, holeShapes );
+			var lineText = new THREE.Object3D();
+			for ( var i = 0; i < shapes.length; i ++ ) {
+				var shape = shapes[ i ];
+				var lineGeometry = shape.createPointsGeometry();
+				lineGeometry.translate( xMid, 0, 0 );
+				var lineMesh = new THREE.Line( lineGeometry, matDark );
+				lineText.add( lineMesh );
+			}
+			this.scene.add( lineText );
+		});
 	}
 	
 	renderLighting() {
