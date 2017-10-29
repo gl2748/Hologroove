@@ -4,11 +4,13 @@ import style from './style';
 
 const TOUCH = typeof window !== 'undefined' && 'Touch' in window && navigator.maxTouchPoints>1;
 const coords = e => ((e = e.touches && e.touches[0] || e), ({ x: e.pageX, y: e.pageY }));
+const color1 = 0x0; // Text and text shadow.
+const color2 = 0xf0f0f0; // Background
 
 export default class SceneContainer extends Component {
 	mouseDown(e) {
 		let { rotateX=0, rotateY=0 } = this.state;
-		this.downState = { rotateX, rotateY };
+		this.downState = { /*rotateX,*/ rotateY };
 		this.down = coords(e);
 		e.preventDefault();
 	}
@@ -21,7 +23,7 @@ export default class SceneContainer extends Component {
 			{ rotateX, rotateY } = this.downState;
 		rotateX += x/innerWidth - .5;
 		rotateY += y/innerHeight - .5;
-		this.setState({ rotateX, rotateY });
+		this.setState({ /*rotateX,*/ rotateY });
 	}
 	
 	mouseUp() {
@@ -69,7 +71,7 @@ class Scene extends Component {
 		this.base.appendChild(this.renderer.domElement);
 
 		this.scene = new THREE.Scene();
-		this.scene.background = new THREE.Color( 0xf0f0f0 );
+		this.scene.background = new THREE.Color( color2 );
 
 		this.camera = new THREE.PerspectiveCamera(
 			35,         // FOV
@@ -83,6 +85,7 @@ class Scene extends Component {
 		
 		this.renderText();
 		// this.renderObject();
+		this.renderDisk();
 		this.renderLighting();
 		this.rerender();
 	}
@@ -93,7 +96,7 @@ class Scene extends Component {
 
 	fontLoaderCallback = ( font ) => {
 		const textShape = new THREE.BufferGeometry();
-		const color = 0x0;
+		const color = color1;
 		const matDark = new THREE.LineBasicMaterial( {
 			color,
 			side: THREE.DoubleSide
@@ -104,18 +107,21 @@ class Scene extends Component {
 			opacity: 0.2,
 			side: THREE.DoubleSide
 		} );
-		const message = 'HOLOGROOVE.';
+		const message = 'Holo Groove';
 		let shapes = font.generateShapes( message, 1, 5 );
 		const geometry = new THREE.ShapeGeometry( shapes );
 		geometry.computeBoundingBox();
-		const xMid = - 0.1 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
-		geometry.translate( xMid, 0, 0 );
+		// const xMid = geometry.boundingBox.max.x - geometry.boundingBox.min.x;
+		const center = geometry.boundingBox.getCenter();
+		geometry.translate( - center.x, 0, center.z );
 
 		// make shape ( N.B. edge view not visible )
 		textShape.fromGeometry( geometry );
 		const textShadow = new THREE.Mesh( textShape, matLite );
-		const text = new THREE.Mesh( textShape, matLite );
-		//text.position.z = - 1;
+		const text = new THREE.Mesh( textShape, matDark );
+		// TODO: Make this positioning responsive.
+		text.position.z = -8;
+		textShadow.position.z = -8;
 		textShadow.rotateX(-1.5708);
 
 
@@ -176,7 +182,21 @@ class Scene extends Component {
 			this.rerender();
 		});
 	}
-	
+
+	renderDisk() {
+		this.object = new THREE.Mesh(
+			new THREE.CircleGeometry( 5, 32 ),
+			new THREE.MeshBasicMaterial( {
+				color: color1,
+				wireframe: true,
+				side: THREE.DoubleSide
+			} )
+		);
+		this.object.rotateX(-1.5708);
+		this.scene.add(this.object);
+		this.rerender();
+	}
+
 	renderLighting() {
 		let light = new THREE.PointLight(0xFF0000, 1, 100);
 		light.position.set( 10, 0, 10 );
