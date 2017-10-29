@@ -2,13 +2,13 @@ import { h, Component } from 'preact';
 import * as THREE from 'three';
 import style from './style';
 
-const TOUCH = typeof window !== "undefined" && 'Touch' in window && navigator.maxTouchPoints>1;
-const coords = e => ((e = e.touches && e.touches[0] || e), ({ x:e.pageX, y:e.pageY }));
+const TOUCH = typeof window !== 'undefined' && 'Touch' in window && navigator.maxTouchPoints>1;
+const coords = e => ((e = e.touches && e.touches[0] || e), ({ x: e.pageX, y: e.pageY }));
 
 export default class SceneContainer extends Component {
 	mouseDown(e) {
 		let { rotateX=0, rotateY=0 } = this.state;
-		this.downState = { rotateX, rotateY }
+		this.downState = { rotateX, rotateY };
 		this.down = coords(e);
 		e.preventDefault();
 	}
@@ -69,17 +69,20 @@ class Scene extends Component {
 		this.base.appendChild(this.renderer.domElement);
 
 		this.scene = new THREE.Scene();
-		
+		this.scene.background = new THREE.Color( 0xf0f0f0 );
+
 		this.camera = new THREE.PerspectiveCamera(
 			35,         // FOV
 			800 / 640,  // Aspect
 			0.1,        // Near
 			10000       // Far
 		);
-		this.camera.position.set(-15, 10, 15);
+
+		this.camera.position.set(10, 20, 30);
 		this.camera.lookAt(this.scene.position);
 		
-		this.renderObject();
+		this.renderText();
+		// this.renderObject();
 		this.renderLighting();
 		this.rerender();
 	}
@@ -88,8 +91,61 @@ class Scene extends Component {
 		this.renderer.render(this.scene, this.camera);
 	}
 
+	fontLoaderCallback = ( font ) => {
+		const textShape = new THREE.BufferGeometry();
+		const color = 0x0;
+		const matDark = new THREE.LineBasicMaterial( {
+			color,
+			side: THREE.DoubleSide
+		} );
+		const matLite = new THREE.MeshBasicMaterial( {
+			color,
+			transparent: true,
+			opacity: 0.2,
+			side: THREE.DoubleSide
+		} );
+		const message = 'HOLOGROOVE.';
+		let shapes = font.generateShapes( message, 1, 5 );
+		const geometry = new THREE.ShapeGeometry( shapes );
+		geometry.computeBoundingBox();
+		const xMid = - 0.1 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
+		geometry.translate( xMid, 0, 0 );
+
+		// make shape ( N.B. edge view not visible )
+		textShape.fromGeometry( geometry );
+		const textShadow = new THREE.Mesh( textShape, matLite );
+		const text = new THREE.Mesh( textShape, matLite );
+		//text.position.z = - 1;
+		textShadow.rotateX(-1.5708);
+
+
+		// make line shape ( N.B. edge view remains visible )
+		/*
+		const holeShapes = [];
+		for ( let i = 0; i < shapes.length; i++ ) {
+			const shape = shapes[ i ];
+			if ( shape.holes && shape.holes.length > 0 ) {
+				for ( let j = 0; j < shape.holes.length; j++ ) {
+					const hole = shape.holes[ j ];
+					holeShapes.push( hole );
+				}
+			}
+		}
+		shapes = [...shapes, ...holeShapes];
+		const lineText = new THREE.Object3D();
+		for ( let i = 0; i < shapes.length; i++ ) {
+			const shape = shapes[ i ];
+			const lineGeometry = shape.createPointsGeometry();
+			lineGeometry.translate( xMid, 0, 0 );
+			const lineMesh = new THREE.Line( lineGeometry, matDark );
+			lineText.add( lineMesh );
+		}
+		*/
+		return { /*lineText,*/ textShadow, text };
+	}
+
 	componentDidMount() {
-		setTimeout( () => this.setupThree(), 1);
+		setTimeout( () => this.setupThree(), 3);
 	}
 
 	componentWillReceiveProps() {
@@ -100,6 +156,7 @@ class Scene extends Component {
 		return false;
 	}
 
+	/*
 	renderObject() {
 		this.object = new THREE.Mesh(
 			new THREE.BoxGeometry(2, 2, 2),
@@ -107,55 +164,16 @@ class Scene extends Component {
 		);
 		this.scene.add(this.object);
 	}
+	*/
 
 	renderText() {
 		const loader = new THREE.FontLoader();
-		loader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
-			var xMid, text;
-			var textShape = new THREE.BufferGeometry();
-			var color = 0x006699;
-			var matDark = new THREE.LineBasicMaterial( {
-				color: color,
-				side: THREE.DoubleSide
-			} );
-			var matLite = new THREE.MeshBasicMaterial( {
-				color: color,
-				transparent: true,
-				opacity: 0.4,
-				side: THREE.DoubleSide
-			} );
-			var message = "   Three.js\nSimple text.";
-			var shapes = font.generateShapes( message, 100, 2 );
-			var geometry = new THREE.ShapeGeometry( shapes );
-			geometry.computeBoundingBox();
-			xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
-			geometry.translate( xMid, 0, 0 );
-			// make shape ( N.B. edge view not visible )
-			textShape.fromGeometry( geometry );
-			text = new THREE.Mesh( textShape, matLite );
-			text.position.z = - 150;
-			this.scene.add( text );
-			// make line shape ( N.B. edge view remains visible )
-			var holeShapes = [];
-			for ( var i = 0; i < shapes.length; i ++ ) {
-				var shape = shapes[ i ];
-				if ( shape.holes && shape.holes.length > 0 ) {
-					for ( var j = 0; j < shape.holes.length; j ++ ) {
-						var hole = shape.holes[ j ];
-						holeShapes.push( hole );
-					}
-				}
-			}
-			shapes.push.apply( shapes, holeShapes );
-			var lineText = new THREE.Object3D();
-			for ( var i = 0; i < shapes.length; i ++ ) {
-				var shape = shapes[ i ];
-				var lineGeometry = shape.createPointsGeometry();
-				lineGeometry.translate( xMid, 0, 0 );
-				var lineMesh = new THREE.Line( lineGeometry, matDark );
-				lineText.add( lineMesh );
-			}
-			this.scene.add( lineText );
+		loader.load( '../../assets/fonts/helvetiker_regular.typeface.json', font => {
+			const loadedFont = this.fontLoaderCallback(font)
+			//this.scene.add(loadedFont.lineText);
+			this.scene.add(loadedFont.text);
+			this.scene.add(loadedFont.textShadow);
+			this.rerender();
 		});
 	}
 	
