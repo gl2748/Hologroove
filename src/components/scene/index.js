@@ -4,13 +4,15 @@ import style from './style';
 
 const TOUCH = typeof window !== 'undefined' && 'Touch' in window && navigator.maxTouchPoints>1;
 const coords = e => ((e = e.touches && e.touches[0] || e), ({ x: e.pageX, y: e.pageY }));
+
+// COLORS.
 const color1 = 0x0; // Text and text shadow.
 const color2 = 0xf0f0f0; // Background
 
 export default class SceneContainer extends Component {
 	mouseDown(e) {
 		let { rotateX=0, rotateY=0 } = this.state;
-		this.downState = { /*rotateX,*/ rotateY };
+		this.downState = { rotateX, rotateY };
 		this.down = coords(e);
 		e.preventDefault();
 	}
@@ -23,7 +25,8 @@ export default class SceneContainer extends Component {
 			{ rotateX, rotateY } = this.downState;
 		rotateX += x/innerWidth - .5;
 		rotateY += y/innerHeight - .5;
-		this.setState({ /*rotateX,*/ rotateY });
+
+		this.setState({ rotateX, rotateY });
 	}
 	
 	mouseUp() {
@@ -58,8 +61,8 @@ class Scene extends Component {
 	//@debounce
 	update() {
 		let { zoom, rotateX, rotateY } = this.props;
-		this.object.rotation.y = rotateX * Math.PI;
-		this.object.rotation.z = - rotateY * Math.PI;
+		// this.object.rotation.y = rotateX * Math.PI;
+		this.object.rotation.z = - rotateX * Math.PI;
 		this.scene.scale.addScalar( zoom - this.scene.scale.x );
 		this.rerender();
 	}
