@@ -10,19 +10,20 @@ class Scene extends Component {
 	//@debounce
 	update() {
 		let { zoom, rotateX, mouseX, mouseY } = this.props;
-
 		this.object.rotation.z = - rotateX * Math.PI;
+		this.mouse = new THREE.Vector2(mouseX, mouseY);
 		this.scene.scale.addScalar( zoom - this.scene.scale.x );
-
 		this.raycaster.setFromCamera( this.mouse, this.camera );
-
+		const intersects = this.raycaster.intersectObjects(this.scene.children);
+		console.log(intersects);
 		this.rerender();
 	}
 
 	setupThree() {
 		let { width, height } = this.base.getBoundingClientRect();
-		console.log(this.props);
-		debugger
+		let { mouseX, mouseY } = this.props;
+		//console.log(this.props);
+		//debugger
 		this.renderer = new THREE.WebGLRenderer();
 		this.renderer.setSize(width*2, height*2);
 		this.base.appendChild(this.renderer.domElement);
@@ -41,13 +42,12 @@ class Scene extends Component {
 		this.camera.lookAt(this.scene.position);
 
 		this.raycaster = new THREE.Raycaster();
-		this.mouse = new THREE.Vector2(this.props.mouseX, this.props.mouseY);
-
 		this.renderText();
 		this.renderDisk();
 		this.renderButton();
 		this.renderLighting();
 		this.rerender();
+		
 	}
 
 	rerender() {
@@ -88,7 +88,7 @@ class Scene extends Component {
 	}
 
 	componentDidMount() {
-		setTimeout( () => this.setupThree(), 3);
+		this.setupThree();
 	}
 
 	componentWillReceiveProps() {
