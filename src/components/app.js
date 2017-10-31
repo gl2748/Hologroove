@@ -2,7 +2,7 @@ import { h, Component } from 'preact';
 import { Router } from 'preact-router';
 
 import Header from './header';
-import SceneContainer from './scene';
+import { SceneContainer } from './scene';
 import Home from '../routes/home';
 import Profile from '../routes/profile';
 // import Home from 'async!../routes/home';
