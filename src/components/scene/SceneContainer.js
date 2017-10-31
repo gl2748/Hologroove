@@ -19,7 +19,13 @@ class SceneContainer extends Component {
 	}
 	
 	mouseMove(e) {
-		if (!this.down) return;
+		if (!this.down) {
+			let p = coords(e),
+				mouseX = ( p.x / innerWidth ) * 2 - 1,
+				mouseY = - ( p.y / innerHeight ) * 2 + 1;
+			this.setState({ mouseX, mouseY });
+			return;
+		}
 		let p = coords(e),
 			x = p.x - this.down.x,
 			y = p.y - this.down.y,
@@ -45,11 +51,11 @@ class SceneContainer extends Component {
 		};
 	}
 
-	render({}, { zoom=1, rotateX=0 }) {
+	render({}, { zoom=1, rotateX=0, mouseX=0, mouseY=0 }) {
 		return (
 			<div class={style.scene}>
 				<div class={style.main} {...this.events}>
-					<Scene {...{ zoom, rotateX}} />
+					<Scene {...{ zoom, rotateX, mouseX, mouseY }} />
 				</div>
 			</div>
 		);
