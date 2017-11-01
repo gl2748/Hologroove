@@ -64,7 +64,7 @@ class Scene extends Component {
 			10000       // Far
 		);
 
-		this.camera.position.set(0, 30, 0);
+		this.camera.position.set(-20, 30, 0);
 		this.camera.lookAt(this.scene.position);
 
 		this.raycaster = new THREE.Raycaster();
