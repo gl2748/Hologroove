@@ -1,6 +1,7 @@
 import { h, Component } from 'preact';
 import * as THREE from 'three';
 import style from './style';
+import SceneContainer from './SceneContainer';
 
 // COLORS.
 const color1 = 0xafb8e3; // Text and text shadow.
@@ -9,16 +10,22 @@ const color3 = 0xff0000; // Hover.
 
 class Scene extends Component {
 	//@debounce
-	update() {
-		let { zoom, rotateX, mouseX, mouseY, timer } = this.props;
-		const record = this.scene.children[0];
-		const button = this.scene.children[1];
-		this.object.rotation.z = - rotateX * Math.PI;
-		if (this.state.diskRotating) {
-			this.object.rotation.z = - timer * Math.PI;
-		}
+	/*
+	determineIntersects(t) {
+		//const button = this.scene.children[1];
+		let { mouseX, mouseY } = this.props;
 		this.mouse = new THREE.Vector2(mouseX, mouseY);
-		this.scene.scale.addScalar( zoom - this.scene.scale.x );
+		this.raycaster.setFromCamera( this.mouse, this.camera );
+		const intersects = this.raycaster.intersectObject(t);
+		this.setState({[t]: intersects })
+		return intersects.length > 0;
+	}
+	*/
+
+	handleClick() {
+		let { mouseX, mouseY } = this.props;
+		const button = this.scene.children[1];
+		this.mouse = new THREE.Vector2(mouseX, mouseY);
 		this.raycaster.setFromCamera( this.mouse, this.camera );
 		const intersects = this.raycaster.intersectObject(button);
 		if (intersects.length > 0) {
@@ -29,6 +36,14 @@ class Scene extends Component {
 			button.material.color.set( color1 );
 			this.setState({ diskRotating: false });
 		}
+	}
+
+	update() {
+		let { zoom, timer } = this.props;
+		if (this.state.diskRotating) {
+			this.object.rotation.z = - timer * Math.PI;
+		}
+		this.scene.scale.addScalar( zoom - this.scene.scale.x );
 		this.rerender();
 	}
 
@@ -108,8 +123,9 @@ class Scene extends Component {
 		this.setupThree();
 	}
 
-	componentWillReceiveProps() {
+	componentWillReceiveProps(nextProps) {
 		if (this.base) this.update();
+		if (nextProps.mouseDownX !== this.props.mouseDownX) this.handleClick();
 	}
 
 	shouldComponentUpdate() {

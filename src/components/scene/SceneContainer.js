@@ -28,16 +28,17 @@ class SceneContainer extends Component {
 		this.downState = { rotateX };
 		this.down = coords(e);
 		let p = coords(e),
-			mouseDownX = ( p.x / innerWidth ) * 2 - 1,
-			mouseDownY = - ( p.y / innerHeight ) * 2 + 1;
-		this.setState({ mouseDownX, mouseDownY, mouseDown: true, });
+			mouseDownX = ( p.x / window.innerWidth ) * 2 - 1,
+			mouseDownY = - ( p.y / window.innerHeight ) * 1.9 + 1;
+		this.setState({ mouseDownX, mouseDownY, mouseDown: true });
 	}
 	
 	mouseMove(e) {
+		//debugger
 		if (!this.down) {
 			let p = coords(e),
-				mouseX = ( p.x / innerWidth ) * 2 - 1,
-				mouseY = - ( p.y / innerHeight ) * 2 + 1;
+				mouseX = ( p.x / window.innerWidth ) * 2 - 1,
+				mouseY = - ( p.y / window.innerHeight ) * 1.9 + 1;
 			this.setState({ mouseX, mouseY });
 			return;
 		}
@@ -45,13 +46,14 @@ class SceneContainer extends Component {
 			x = p.x - this.down.x,
 			y = p.y - this.down.y,
 			{ rotateX } = this.downState;
-		rotateX += x/innerWidth - .5;
+		rotateX += x/window.innerWidth - .5;
 		this.setState({ rotateX });
 	}
 	
 	mouseUp() {
 		this.downState = null;
 		this.down = null;
+		this.setState({ mouseDown: false });
 	}
 
 	constructor() {
@@ -63,7 +65,7 @@ class SceneContainer extends Component {
 		};
 		this.state = {
 			zoom: 1,
-			timer: 0
+			timer: 0,
 		};
 	}
 
@@ -71,11 +73,11 @@ class SceneContainer extends Component {
 		this.timerFunc();
 	}
 
-	render({}, { zoom=1, rotateX=0, mouseX, mouseY, timer }) {
+	render({}, { zoom=1, rotateX=0, mouseX=0, mouseY=0, timer=0, mouseDown=0, mouseDownX=0, mouseDownY=0 }) {
 		return (
 			<div class={style.scene}>
 				<div class={style.main} {...this.events}>
-					<Scene {...{ zoom, rotateX, mouseX, mouseY, timer }} />
+					<Scene {...{ zoom, rotateX, mouseX, mouseY, timer, mouseDown, mouseDownX, mouseDownY }} />
 				</div>
 			</div>
 		);
