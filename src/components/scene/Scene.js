@@ -4,26 +4,37 @@ import style from './style';
 
 // COLORS.
 const color1 = 0xafb8e3; // Text and text shadow.
-const color2 = 0x101111; // Background
+const color2 = 0x101111; // Background.
+const color3 = 0xff0000; // Hover.
 
 class Scene extends Component {
 	//@debounce
 	update() {
-		let { zoom, rotateX, mouseX, mouseY } = this.props;
+		let { zoom, rotateX, mouseX, mouseY, timer } = this.props;
+		const record = this.scene.children[0];
+		const button = this.scene.children[1];
 		this.object.rotation.z = - rotateX * Math.PI;
+		if (this.state.diskRotating) {
+			this.object.rotation.z = - timer * Math.PI;
+		}
 		this.mouse = new THREE.Vector2(mouseX, mouseY);
 		this.scene.scale.addScalar( zoom - this.scene.scale.x );
 		this.raycaster.setFromCamera( this.mouse, this.camera );
-		const intersects = this.raycaster.intersectObjects(this.scene.children);
-		console.log(intersects);
+		const intersects = this.raycaster.intersectObject(button);
+		if (intersects.length > 0) {
+			this.hoverButton(button);
+			this.setState({ diskRotating: true });
+		} else {
+			document.body.classList.remove('hoverElement');
+			button.material.color.set( color1 );
+			this.setState({ diskRotating: false });
+		}
 		this.rerender();
 	}
 
 	setupThree() {
 		let { width, height } = this.base.getBoundingClientRect();
-		let { mouseX, mouseY } = this.props;
-		//console.log(this.props);
-		//debugger
+		
 		this.renderer = new THREE.WebGLRenderer();
 		this.renderer.setSize(width*2, height*2);
 		this.base.appendChild(this.renderer.domElement);
@@ -38,13 +49,14 @@ class Scene extends Component {
 			10000       // Far
 		);
 
-		this.camera.position.set(0, 12, 30);
+		this.camera.position.set(0, 30, 0);
 		this.camera.lookAt(this.scene.position);
 
 		this.raycaster = new THREE.Raycaster();
 		this.renderText();
 		this.renderDisk();
 		this.renderButton();
+		//this.renderArrow();
 		this.renderLighting();
 		this.rerender();
 		
@@ -52,6 +64,11 @@ class Scene extends Component {
 
 	rerender() {
 		this.renderer.render(this.scene, this.camera);
+	}
+
+	hoverButton ( button) {
+		button.material.color.set( color3 );
+		document.body.classList.add('hoverElement');
 	}
 
 	fontLoaderCallback = ( font ) => {
@@ -111,7 +128,7 @@ class Scene extends Component {
 
 	renderButton() {
 		// Button will be a grid of dots that respond to click.
-		const buttonGeometry = new THREE.PlaneGeometry( 2, 2, 2 );
+		const buttonGeometry = new THREE.PlaneGeometry( 1, 1, 1 );
 		const buttonMaterial = new THREE.MeshBasicMaterial( {
 			color: color1,
 			side: THREE.DoubleSide,
@@ -121,7 +138,19 @@ class Scene extends Component {
 		button.rotation.x = -1.57;
 		button.position.set( 7, 0, 0 );
 		// Foreach vertex add a point
+		button.name = 'button';
 		this.scene.add( button );
+		this.rerender();
+	}
+
+	renderArrow() {
+		const arrowMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+		const arrowGeometry = new THREE.Geometry();
+		arrowGeometry.vertices.push(new THREE.Vector3(-10, 0, 0));
+		arrowGeometry.vertices.push(new THREE.Vector3(0, 10, 0));
+		arrowGeometry.vertices.push(new THREE.Vector3(10, 0, 0));
+		const arrow = new THREE.Line(arrowGeometry, arrowMaterial);
+		this.scene.add( arrow );
 		this.rerender();
 	}
 
@@ -135,6 +164,7 @@ class Scene extends Component {
 			} )
 		);
 		this.object.rotateX(-1.5708);
+		this.object.name = 'disk';
 		this.scene.add(this.object);
 		this.rerender();
 	}

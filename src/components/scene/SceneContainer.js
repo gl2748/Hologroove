@@ -10,12 +10,27 @@ const coords = e => ((e = e.touches && e.touches[0] || e), ({ x: e.pageX, y: e.p
 const color1 = 0x0; // Text and text shadow.
 const color2 = 0xf0f0f0; // Background
 
+let timer = 0.666;
+
 class SceneContainer extends Component {
+
+	timerFunc() {
+		setInterval(() => {
+			let updatedTimer = this.state.timer + 0.01;
+			updatedTimer = updatedTimer >= 1 ? 0 : updatedTimer;
+			this.setState({ timer: updatedTimer });
+		}, 30);
+	}
+
 	mouseDown(e) {
+		e.preventDefault();
 		let { rotateX=0 } = this.state;
 		this.downState = { rotateX };
 		this.down = coords(e);
-		e.preventDefault();
+		let p = coords(e),
+			mouseDownX = ( p.x / innerWidth ) * 2 - 1,
+			mouseDownY = - ( p.y / innerHeight ) * 2 + 1;
+		this.setState({ mouseDownX, mouseDownY, mouseDown: true, });
 	}
 	
 	mouseMove(e) {
@@ -47,15 +62,20 @@ class SceneContainer extends Component {
 			[TOUCH?'onTouchEnd':'onMouseUp']: this.mouseUp.bind(this)
 		};
 		this.state = {
-			zoom: 1
+			zoom: 1,
+			timer: 0
 		};
 	}
 
-	render({}, { zoom=1, rotateX=0, mouseX=0, mouseY=0 }) {
+	componentDidMount() {
+		this.timerFunc();
+	}
+
+	render({}, { zoom=1, rotateX=0, mouseX, mouseY, timer }) {
 		return (
 			<div class={style.scene}>
 				<div class={style.main} {...this.events}>
-					<Scene {...{ zoom, rotateX, mouseX, mouseY }} />
+					<Scene {...{ zoom, rotateX, mouseX, mouseY, timer }} />
 				</div>
 			</div>
 		);
