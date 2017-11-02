@@ -9,41 +9,33 @@ const color2 = 0x101111; // Background.
 const color3 = 0xff0000; // Hover.
 
 class Scene extends Component {
-	//@debounce
-	/*
-	determineIntersects(t) {
-		//const button = this.scene.children[1];
-		let { mouseX, mouseY } = this.props;
-		this.mouse = new THREE.Vector2(mouseX, mouseY);
-		this.raycaster.setFromCamera( this.mouse, this.camera );
-		const intersects = this.raycaster.intersectObject(t);
-		this.setState({[t]: intersects })
+
+	determineIntersects(mouse, sceneObject, camera) {
+		this.raycaster.setFromCamera( mouse, camera );
+		const intersects = this.raycaster.intersectObject(sceneObject);
 		return intersects.length > 0;
 	}
-	*/
 
 	handleClick() {
-		let { mouseX, mouseY } = this.props;
-		const button = this.scene.children[1];
-		this.mouse = new THREE.Vector2(mouseX, mouseY);
-		this.raycaster.setFromCamera( this.mouse, this.camera );
-		const intersects = this.raycaster.intersectObject(button);
-		if (intersects.length > 0) {
-			this.hoverButton(button);
-			this.setState({ diskRotating: true });
-		} else {
-			document.body.classList.remove('hoverElement');
-			button.material.color.set( color1 );
-			this.setState({ diskRotating: false });
-		}
+		this.hasIntersect &&
+			this.setState({ diskRotating: !this.state.diskRotating });
 	}
 
+	//@debounce
 	update() {
-		let { zoom, timer } = this.props;
+		let { zoom, timer, mouseX, mouseY } = this.props;
+		this.button = this.scene.children[1];
+		this.mouse = new THREE.Vector2(mouseX, mouseY);
+		this.hasIntersect = this.determineIntersects(this.mouse, this.button, this.camera);
+		if (this.hasIntersect) {
+			this.onHover(this.button);
+		} else {
+			this.offHover(this.button);
+		}
+		this.scene.scale.addScalar( zoom - this.scene.scale.x );
 		if (this.state.diskRotating) {
 			this.object.rotation.z = - timer * Math.PI;
 		}
-		this.scene.scale.addScalar( zoom - this.scene.scale.x );
 		this.rerender();
 	}
 
@@ -64,7 +56,7 @@ class Scene extends Component {
 			10000       // Far
 		);
 
-		this.camera.position.set(-20, 30, 0);
+		this.camera.position.set(0, 30, 0);
 		this.camera.lookAt(this.scene.position);
 
 		this.raycaster = new THREE.Raycaster();
@@ -81,9 +73,14 @@ class Scene extends Component {
 		this.renderer.render(this.scene, this.camera);
 	}
 
-	hoverButton ( button) {
-		button.material.color.set( color3 );
+	onHover (sceneObject) {
+		sceneObject.material.color.set( color3 );
 		document.body.classList.add('hoverElement');
+	}
+
+	offHover (sceneObject) {
+		sceneObject.material.color.set( color1 );
+		document.body.classList.remove('hoverElement');
 	}
 
 	fontLoaderCallback = ( font ) => {

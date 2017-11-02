@@ -29,7 +29,7 @@ class SceneContainer extends Component {
 		this.down = coords(e);
 		let p = coords(e),
 			mouseDownX = ( p.x / window.innerWidth ) * 2 - 1,
-			mouseDownY = - ( p.y / window.innerHeight ) * 1.9 + 1;
+			mouseDownY = - ( p.y / window.innerHeight ) * 2 + 1;
 		this.setState({ mouseDownX, mouseDownY, mouseDown: true });
 	}
 	
@@ -38,7 +38,7 @@ class SceneContainer extends Component {
 		if (!this.down) {
 			let p = coords(e),
 				mouseX = ( p.x / window.innerWidth ) * 2 - 1,
-				mouseY = - ( p.y / window.innerHeight ) * 1.9 + 1;
+				mouseY = - ( p.y / window.innerHeight ) * 2 + 1;
 			this.setState({ mouseX, mouseY });
 			return;
 		}
@@ -65,7 +65,7 @@ class SceneContainer extends Component {
 		};
 		this.state = {
 			zoom: 1,
-			timer: 0,
+			timer: 0
 		};
 	}
 
