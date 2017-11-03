@@ -19,6 +19,11 @@ class Scene extends Component {
 	handleClick() {
 		this.hasIntersect &&
 			this.setState({ diskRotating: !this.state.diskRotating });
+			// Set a timeout, that adds an 'disk slow down' attribute to state, when the disk rotating
+			// Goes from on to off. 
+			// While the 'disk slow down' is true. Apply an slowing rotation to the disk rotation.
+			// Vice Versa for disk going from not rotating to rotating.
+			this.setTimeout(()=>{}, 3000)
 	}
 
 	//@debounce
@@ -32,8 +37,9 @@ class Scene extends Component {
 		} else {
 			this.offHover(this.button);
 		}
-		this.scene.scale.addScalar( zoom - this.scene.scale.x );
+		//this.scene.scale.addScalar( zoom - this.scene.scale.x );
 		if (this.state.diskRotating) {
+			//for the first 2 seconds, ease the rotation.
 			this.object.rotation.z = - timer * Math.PI;
 		}
 		this.rerender();
@@ -49,24 +55,33 @@ class Scene extends Component {
 		this.scene = new THREE.Scene();
 		this.scene.background = new THREE.Color( color2 );
 
+		/*
 		this.camera = new THREE.PerspectiveCamera(
 			35,         // FOV
 			800 / 640,  // Aspect
 			0.1,        // Near
 			10000       // Far
 		);
+		*/
+		this.camera = new THREE.OrthographicCamera(
+			window.innerWidth/-50,
+			window.innerWidth/50,
+			window.innerHeight/50,
+			window.innerHeight/-50,
+			10,
+			1000
+		);
 
-		this.camera.position.set(0, 30, 0);
+		this.camera.position.set(3, 20, 12);
 		this.camera.lookAt(this.scene.position);
 
 		this.raycaster = new THREE.Raycaster();
-		this.renderText();
+		//this.renderText();
 		this.renderDisk();
 		this.renderButton();
-		//this.renderArrow();
+		this.renderArrow();
 		this.renderLighting();
 		this.rerender();
-		
 	}
 
 	rerender() {
@@ -96,7 +111,7 @@ class Scene extends Component {
 			opacity: 0.2,
 			side: THREE.DoubleSide
 		} );
-		const message = 'Holo Groove';
+		const message = 'Take your release to the next level.';
 		let shapes = font.generateShapes( message, 1, 5 );
 		const geometry = new THREE.ShapeGeometry( shapes );
 		geometry.computeBoundingBox();
@@ -133,8 +148,8 @@ class Scene extends Component {
 		const loader = new THREE.FontLoader();
 		loader.load( '../../assets/fonts/helvetiker_regular.typeface.json', font => {
 			const loadedFont = this.fontLoaderCallback(font)
-			// this.scene.add(loadedFont.text);
-			// this.scene.add(loadedFont.textShadow);
+			this.scene.add(loadedFont.text);
+			this.scene.add(loadedFont.textShadow);
 			this.rerender();
 		});
 	}
@@ -157,13 +172,106 @@ class Scene extends Component {
 	}
 
 	renderArrow() {
-		const arrowMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
-		const arrowGeometry = new THREE.Geometry();
-		arrowGeometry.vertices.push(new THREE.Vector3(-10, 0, 0));
-		arrowGeometry.vertices.push(new THREE.Vector3(0, 10, 0));
-		arrowGeometry.vertices.push(new THREE.Vector3(10, 0, 0));
-		const arrow = new THREE.Line(arrowGeometry, arrowMaterial);
-		this.scene.add( arrow );
+		const textMaterial = new THREE.LineBasicMaterial({ color: color1 });
+
+		const H = new THREE.Geometry();
+		H.vertices.push(new THREE.Vector3(0, 0, 0));
+		H.vertices.push(new THREE.Vector3(0, 0, 1));
+		H.vertices.push(new THREE.Vector3(0, 0, 0.5));
+		H.vertices.push(new THREE.Vector3(0.5, 0, 0.5));
+		H.vertices.push(new THREE.Vector3(0.5, 0, 1));
+		H.vertices.push(new THREE.Vector3(0.5, 0, 0));
+		const letterH = new THREE.Line(H, textMaterial);
+		letterH.position.set( -4.5, 0, -8 );
+
+		const O = new THREE.Geometry();
+		/*
+		O.vertices.push(new THREE.Vector3(0, 0, 0));
+		O.vertices.push(new THREE.Vector3(0, 0, 1));
+		O.vertices.push(new THREE.Vector3(0.5, 0, 1));
+		O.vertices.push(new THREE.Vector3(0, 0, 0));
+		*/
+
+		O.vertices.push(new THREE.Vector3(0, 0, 0));
+		O.vertices.push(new THREE.Vector3(-0.4, 0, 0.5));
+		O.vertices.push(new THREE.Vector3(0, 0, 1));
+		O.vertices.push(new THREE.Vector3(0.4, 0, 0.5));
+		O.vertices.push(new THREE.Vector3(0, 0, 0));
+
+		const letterO = new THREE.Line(O, textMaterial);
+		const letterO2 = new THREE.Line(O, textMaterial);
+		const letterO3 = new THREE.Line(O, textMaterial);
+		const letterO4 = new THREE.Line(O, textMaterial);
+		
+		
+
+		letterO.position.set( -3.5, 0, -8 );
+		letterO2.position.set( -1.5, 0, -8 );
+		letterO3.position.set( 2, 0, -8 );
+		letterO4.position.set( 3, 0, -8 );
+
+		const L = new THREE.Geometry();
+		L.vertices.push(new THREE.Vector3(0, 0, 0));
+		L.vertices.push(new THREE.Vector3(0, 0, 1));
+		L.vertices.push(new THREE.Vector3(0.5, 0, 1));		
+		const letterL = new THREE.Line(L, textMaterial);
+		letterL.position.set( -2.5, 0, -8 );
+
+		const G = new THREE.Geometry();
+		G.vertices.push(new THREE.Vector3(0, 0, 0));
+		G.vertices.push(new THREE.Vector3(-0.4, 0, 0.5));
+		G.vertices.push(new THREE.Vector3(0, 0, 1));
+		G.vertices.push(new THREE.Vector3(0.4, 0, 0.5));
+		G.vertices.push(new THREE.Vector3(0, 0, 0.5));
+		G.vertices.push(new THREE.Vector3(0, 0, 1));
+		
+
+		const letterG = new THREE.Line(G, textMaterial);
+		letterG.position.set( 0, 0, -8 );
+		
+		const R = new THREE.Geometry();
+		R.vertices.push(new THREE.Vector3(0, 0, 0));
+		R.vertices.push(new THREE.Vector3(0, 0, 1));
+		R.vertices.push(new THREE.Vector3(0, 0, 0));
+		R.vertices.push(new THREE.Vector3(0.4, 0, 0.5));
+		R.vertices.push(new THREE.Vector3(0, 0, 0.7));
+		R.vertices.push(new THREE.Vector3(0, 0, 0.35));
+		R.vertices.push(new THREE.Vector3(0.5, 0, 1.01));
+		const letterR = new THREE.Line(R, textMaterial);
+		letterR.position.set( 1, 0, -8 );
+
+		const V = new THREE.Geometry();
+		V.vertices.push(new THREE.Vector3(0, 0, 0));
+		V.vertices.push(new THREE.Vector3(0.4, 0, 1));
+		V.vertices.push(new THREE.Vector3(0.8, 0, 0));
+
+		const letterV = new THREE.Line(V, textMaterial);
+		letterV.position.set( 4, 0, -8 );
+
+		const E = new THREE.Geometry();
+		E.vertices.push(new THREE.Vector3(0, 0, 0));
+		E.vertices.push(new THREE.Vector3(0, 0, 1));
+		E.vertices.push(new THREE.Vector3(0.5, 0, 1));
+		E.vertices.push(new THREE.Vector3(0, 0, 1));
+		E.vertices.push(new THREE.Vector3(0, 0, 0.5));
+		E.vertices.push(new THREE.Vector3(0.5, 0, 0.5));
+		E.vertices.push(new THREE.Vector3(0, 0, 0.5));
+		E.vertices.push(new THREE.Vector3(0, 0, 0));
+		E.vertices.push(new THREE.Vector3(0.5, 0, 0));
+
+		const letterE = new THREE.Line(E, textMaterial);
+		letterE.position.set( 5, 0, -8 );
+
+		this.scene.add( letterH );
+		this.scene.add( letterO );
+		this.scene.add( letterL );
+		this.scene.add( letterO2 );
+		this.scene.add( letterG );
+		this.scene.add( letterR );
+		this.scene.add( letterO3 );
+		this.scene.add( letterO4 );
+		this.scene.add( letterV );
+		this.scene.add( letterE );
 		this.rerender();
 	}
 
