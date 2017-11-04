@@ -14,12 +14,13 @@ let timer = 0.666;
 
 class SceneContainer extends Component {
 
+	// By periodically passing updated time prop to child, we can trigger an update.
 	timerFunc() {
 		setInterval(() => {
 			let updatedTimer = this.state.timer + 0.01;
 			updatedTimer = updatedTimer >= 1 ? 0 : updatedTimer;
 			this.setState({ timer: updatedTimer });
-		}, 30);
+		}, 10);
 	}
 
 	mouseDown(e) {

@@ -17,18 +17,24 @@ class Scene extends Component {
 	}
 
 	handleClick() {
-		this.hasIntersect &&
-			this.setState({ diskRotating: !this.state.diskRotating });
-			// Set a timeout, that adds an 'disk slow down' attribute to state, when the disk rotating
-			// Goes from on to off. 
-			// While the 'disk slow down' is true. Apply an slowing rotation to the disk rotation.
-			// Vice Versa for disk going from not rotating to rotating.
-			this.setTimeout(()=>{}, 3000)
+		this.hasIntersect && this.setState({ diskRotating: !this.state.diskRotating });
+		// Set a timeout, that adds an 'disk slow down' attribute to state, when the disk rotating
+		// Goes from on to off. 
+		// While the 'disk slow down' is true. Apply an slowing rotation to the disk rotation.
+		// Vice Versa for disk going from not rotating to rotating.
+		this.setState({
+			transition: true
+		});
+		setTimeout(() => {
+			this.setState({
+				transition: false
+			});
+		}, 3000);
 	}
 
 	//@debounce
 	update() {
-		let { zoom, timer, mouseX, mouseY } = this.props;
+		let { mouseX, mouseY } = this.props;
 		this.button = this.scene.children[1];
 		this.mouse = new THREE.Vector2(mouseX, mouseY);
 		this.hasIntersect = this.determineIntersects(this.mouse, this.button, this.camera);
@@ -37,16 +43,20 @@ class Scene extends Component {
 		} else {
 			this.offHover(this.button);
 		}
-		//this.scene.scale.addScalar( zoom - this.scene.scale.x );
 		if (this.state.diskRotating) {
-			//for the first 2 seconds, ease the rotation.
-			this.object.rotation.z = - timer * Math.PI;
+			const currentRotation = this.object.rotation.z;
+			const incrementedRotation = currentRotation + 0.01;
+			this.object.rotation.z = incrementedRotation;
+			if (this.state.transition) {
+			}
 		}
 		this.rerender();
 	}
 
 	setupThree() {
 		let { width, height } = this.base.getBoundingClientRect();
+
+		let counter = 0;
 		
 		this.renderer = new THREE.WebGLRenderer();
 		this.renderer.setSize(width*2, height*2);
@@ -55,14 +65,6 @@ class Scene extends Component {
 		this.scene = new THREE.Scene();
 		this.scene.background = new THREE.Color( color2 );
 
-		/*
-		this.camera = new THREE.PerspectiveCamera(
-			35,         // FOV
-			800 / 640,  // Aspect
-			0.1,        // Near
-			10000       // Far
-		);
-		*/
 		this.camera = new THREE.OrthographicCamera(
 			window.innerWidth/-50,
 			window.innerWidth/50,
@@ -72,11 +74,10 @@ class Scene extends Component {
 			1000
 		);
 
-		this.camera.position.set(3, 20, 12);
+		this.camera.position.set(2, 20, 12);
 		this.camera.lookAt(this.scene.position);
 
 		this.raycaster = new THREE.Raycaster();
-		//this.renderText();
 		this.renderDisk();
 		this.renderButton();
 		this.renderArrow();
@@ -185,12 +186,6 @@ class Scene extends Component {
 		letterH.position.set( -4.5, 0, -8 );
 
 		const O = new THREE.Geometry();
-		/*
-		O.vertices.push(new THREE.Vector3(0, 0, 0));
-		O.vertices.push(new THREE.Vector3(0, 0, 1));
-		O.vertices.push(new THREE.Vector3(0.5, 0, 1));
-		O.vertices.push(new THREE.Vector3(0, 0, 0));
-		*/
 
 		O.vertices.push(new THREE.Vector3(0, 0, 0));
 		O.vertices.push(new THREE.Vector3(-0.4, 0, 0.5));
@@ -202,8 +197,6 @@ class Scene extends Component {
 		const letterO2 = new THREE.Line(O, textMaterial);
 		const letterO3 = new THREE.Line(O, textMaterial);
 		const letterO4 = new THREE.Line(O, textMaterial);
-		
-		
 
 		letterO.position.set( -3.5, 0, -8 );
 		letterO2.position.set( -1.5, 0, -8 );
@@ -284,7 +277,8 @@ class Scene extends Component {
 				side: THREE.DoubleSide
 			} )
 		);
-		this.object.rotateX(-1.5708);
+		// this.object.rotateX(-1.5708);
+		this.object.rotation.x = -1.57;
 		this.object.name = 'disk';
 		this.scene.add(this.object);
 		this.rerender();
