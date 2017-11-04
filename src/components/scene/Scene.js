@@ -1,7 +1,6 @@
 import { h, Component } from 'preact';
 import * as THREE from 'three';
 import style from './style';
-import SceneContainer from './SceneContainer';
 
 // COLORS.
 const color1 = 0xafb8e3; // Text and text shadow.
@@ -23,18 +22,20 @@ class Scene extends Component {
 		// While the 'disk slow down' is true. Apply an slowing rotation to the disk rotation.
 		// Vice Versa for disk going from not rotating to rotating.
 		this.setState({
-			transition: true
+			transition: true,
+			rad2Add: 0
 		});
 		setTimeout(() => {
 			this.setState({
-				transition: false
+				transition: false,
+				rad2Add: 0
 			});
 		}, 3000);
 	}
 
 	//@debounce
 	update() {
-		let { mouseX, mouseY } = this.props;
+		let { mouseX, mouseY, timer } = this.props;
 		this.button = this.scene.children[1];
 		this.mouse = new THREE.Vector2(mouseX, mouseY);
 		this.hasIntersect = this.determineIntersects(this.mouse, this.button, this.camera);
@@ -45,10 +46,47 @@ class Scene extends Component {
 		}
 		if (this.state.diskRotating) {
 			const currentRotation = this.object.rotation.z;
-			const incrementedRotation = currentRotation + 0.01;
+			// in the next line - 0.01 unit is radians
+			const incrementedRotation = currentRotation + 0.125663706;
 			this.object.rotation.z = incrementedRotation;
+			/*
 			if (this.state.transition) {
+				let r2a = this.state.rad2Add + 0.04188790204;
+				this.setState({
+					rad2Add: r2a
+				});
+				this.object.rotation.z = r2a;
+
+				// t0 = 1.4
+				// rot = 0
+				// t1 = 2.4
+				// rot = 0.26
+
+				// use the timer to accelerate the disk.
+				// Transition is in state for 3s.
+				// Therefore timer at transition start 
+				// plus 3 seconds will reflect the change in time
+
+				// per second is currentRotation + 0.01*25 = 0.25 rads
+
+				// Therfore must accelerate from 0rad/p/s to 0.25rad/p/s
+				// over 3 seconds.
+
+				// acc = 0.25/3 = 0.083 rad/s^2
+
+				// the time elapsed between each update is 0.04 of a second
+
+				//therefore incrementally the change in angular velocity, each update is
+				// 0.083 * 0.04 = 0.00332 rad/s.
+
+				// We have subsequently updated the target to PI rad /s.
+				// change in v = PI.
+				// change in t = 3 seconds.
+				// acceleration = PI/3
+				// = 1.0471975512
+				// 1.0471975512 * 0.04 = 0.04188790204
 			}
+			*/
 		}
 		this.rerender();
 	}
