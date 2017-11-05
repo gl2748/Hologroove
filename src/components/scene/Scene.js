@@ -33,6 +33,61 @@ class Scene extends Component {
 		}, 3000);
 	}
 
+	// Rotation
+	rotateDisk() {
+		if (this.state.diskRotating) {
+			const currentRotation = this.object.rotation.z;
+			// in the next line - 0.01 unit is radians
+			const incrementedRotation = currentRotation + 0.125663706;
+			this.object.rotation.z = incrementedRotation;
+			if (this.state.diskRotating) {
+				const currentRotation = this.object.rotation.z;
+				// in the next line - 0.01 unit is radians
+				const incrementedRotation = currentRotation + 0.125663706;
+				this.object.rotation.z = incrementedRotation;
+				
+				
+				if (this.state.transition) {
+					let r2a = this.state.rad2Add + 0.04188790204;
+					this.setState({
+						rad2Add: r2a
+					});
+					this.object.rotation.z = r2a;
+				}
+
+					// t0 = 1.4
+					// rot = 0
+					// t1 = 2.4
+					// rot = 0.26
+
+					// use the timer to accelerate the disk.
+					// Transition is in state for 3s.
+					// Therefore timer at transition start 
+					// plus 3 seconds will reflect the change in time
+
+					// per second is currentRotation + 0.01*25 = 0.25 rads
+
+					// Therfore must accelerate from 0rad/p/s to 0.25rad/p/s
+					// over 3 seconds.
+
+					// acc = 0.25/3 = 0.083 rad/s^2
+
+					// the time elapsed between each update is 0.04 of a second
+
+					//therefore incrementally the change in angular velocity, each update is
+					// 0.083 * 0.04 = 0.00332 rad/s.
+
+					// We have subsequently updated the target to PI rad /s.
+					// change in v = PI.
+					// change in t = 3 seconds.
+					// acceleration = PI/3
+					// = 1.0471975512
+					// 1.0471975512 * 0.04 = 0.04188790204
+			}
+		}
+		this.rerender();
+	}
+
 	//@debounce
 	update() {
 		let { mouseX, mouseY, timer } = this.props;
@@ -43,50 +98,6 @@ class Scene extends Component {
 			this.onHover(this.button);
 		} else {
 			this.offHover(this.button);
-		}
-		if (this.state.diskRotating) {
-			const currentRotation = this.object.rotation.z;
-			// in the next line - 0.01 unit is radians
-			const incrementedRotation = currentRotation + 0.125663706;
-			this.object.rotation.z = incrementedRotation;
-			/*
-			if (this.state.transition) {
-				let r2a = this.state.rad2Add + 0.04188790204;
-				this.setState({
-					rad2Add: r2a
-				});
-				this.object.rotation.z = r2a;
-
-				// t0 = 1.4
-				// rot = 0
-				// t1 = 2.4
-				// rot = 0.26
-
-				// use the timer to accelerate the disk.
-				// Transition is in state for 3s.
-				// Therefore timer at transition start 
-				// plus 3 seconds will reflect the change in time
-
-				// per second is currentRotation + 0.01*25 = 0.25 rads
-
-				// Therfore must accelerate from 0rad/p/s to 0.25rad/p/s
-				// over 3 seconds.
-
-				// acc = 0.25/3 = 0.083 rad/s^2
-
-				// the time elapsed between each update is 0.04 of a second
-
-				//therefore incrementally the change in angular velocity, each update is
-				// 0.083 * 0.04 = 0.00332 rad/s.
-
-				// We have subsequently updated the target to PI rad /s.
-				// change in v = PI.
-				// change in t = 3 seconds.
-				// acceleration = PI/3
-				// = 1.0471975512
-				// 1.0471975512 * 0.04 = 0.04188790204
-			}
-			*/
 		}
 		this.rerender();
 	}
@@ -176,7 +187,10 @@ class Scene extends Component {
 
 	componentWillReceiveProps(nextProps) {
 		if (this.base) this.update();
+		// TODO: need a better method to assess click... perhaps time dimension...
 		if (nextProps.mouseDownX !== this.props.mouseDownX) this.handleClick();
+		// Only rotate if record is playing.
+		if (nextProps.timer !== this.props.timer) this.rotateDisk();
 	}
 
 	shouldComponentUpdate() {
