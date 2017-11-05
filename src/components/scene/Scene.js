@@ -8,6 +8,15 @@ const color2 = 0x101111; // Background.
 const color3 = 0xff0000; // Hover.
 
 class Scene extends Component {
+	constructor() {
+		super();
+		this.state = {
+			diskRotating: false,
+			transitionOn: false,
+			transitionOff: false,
+			incrementedRotation: 0,
+		}
+	}
 
 	determineIntersects(mouse, sceneObject, camera) {
 		this.raycaster.setFromCamera( mouse, camera );
@@ -16,76 +25,47 @@ class Scene extends Component {
 	}
 
 	handleClick() {
-		this.hasIntersect && this.setState({ diskRotating: !this.state.diskRotating });
-		// Set a timeout, that adds an 'disk slow down' attribute to state, when the disk rotating
-		// Goes from on to off. 
-		// While the 'disk slow down' is true. Apply an slowing rotation to the disk rotation.
-		// Vice Versa for disk going from not rotating to rotating.
-		this.setState({
-			transition: true,
-			rad2Add: 0
+		this.hasIntersect && this.setState({ 
+			transitionOn: this.state.diskRotating === false,
+			transitionOff: this.state.diskRotating === true,
+			diskRotating: !this.state.diskRotating,
 		});
-		setTimeout(() => {
+		this.hasIntersect && setTimeout(() => {
 			this.setState({
-				transition: false,
-				rad2Add: 0
+				transitionOn: false,
+				transitionOff: false,
+				incrementedRotation: 0
 			});
 		}, 3000);
 	}
 
 	// Rotation
 	rotateDisk() {
-		if (this.state.diskRotating) {
+		if (this.state.diskRotating === true) {
 			const currentRotation = this.object.rotation.z;
-			// in the next line - 0.01 unit is radians
-			const incrementedRotation = currentRotation + 0.125663706;
-			this.object.rotation.z = incrementedRotation;
-			if (this.state.diskRotating) {
+			let incrementedRotation = this.state.incrementedRotation + 0.04188790204
+			this.setState({
+				incrementedRotation
+			});
+			this.object.rotation.z = this.state.transitionOn === true
+				? incrementedRotation
+				:currentRotation + 0.125663706;
+			console.log('rotation-on-z', this.object.rotation.z);
+		/*
+		if (this.state.diskRotating === false) {
+			if (this.state.transitionOff === true) {
 				const currentRotation = this.object.rotation.z;
-				// in the next line - 0.01 unit is radians
-				const incrementedRotation = currentRotation + 0.125663706;
-				this.object.rotation.z = incrementedRotation;
-				
-				
-				if (this.state.transition) {
-					let r2a = this.state.rad2Add + 0.04188790204;
-					this.setState({
-						rad2Add: r2a
-					});
-					this.object.rotation.z = r2a;
-				}
-
-					// t0 = 1.4
-					// rot = 0
-					// t1 = 2.4
-					// rot = 0.26
-
-					// use the timer to accelerate the disk.
-					// Transition is in state for 3s.
-					// Therefore timer at transition start 
-					// plus 3 seconds will reflect the change in time
-
-					// per second is currentRotation + 0.01*25 = 0.25 rads
-
-					// Therfore must accelerate from 0rad/p/s to 0.25rad/p/s
-					// over 3 seconds.
-
-					// acc = 0.25/3 = 0.083 rad/s^2
-
-					// the time elapsed between each update is 0.04 of a second
-
-					//therefore incrementally the change in angular velocity, each update is
-					// 0.083 * 0.04 = 0.00332 rad/s.
-
-					// We have subsequently updated the target to PI rad /s.
-					// change in v = PI.
-					// change in t = 3 seconds.
-					// acceleration = PI/3
-					// = 1.0471975512
-					// 1.0471975512 * 0.04 = 0.04188790204
+				//const incrementedRotation = currentRotation - 0.04188790204;
+				let r2a = currentRotation + this.state.rad2Add - 0.04188790204 > 0 ? this.state.rad2Add - 0.04188790204 : 0;
+				this.setState({
+					rad2Add: r2a
+				});
+				this.object.rotation.z = r2a;
 			}
 		}
+		*/
 		this.rerender();
+		}
 	}
 
 	//@debounce
@@ -148,39 +128,6 @@ class Scene extends Component {
 		document.body.classList.remove('hoverElement');
 	}
 
-	fontLoaderCallback = ( font ) => {
-		const textShape = new THREE.BufferGeometry();
-		const color = color1;
-		const matDark = new THREE.LineBasicMaterial( {
-			color,
-			side: THREE.DoubleSide
-		} );
-		const matLite = new THREE.MeshBasicMaterial( {
-			color,
-			transparent: true,
-			opacity: 0.2,
-			side: THREE.DoubleSide
-		} );
-		const message = 'Take your release to the next level.';
-		let shapes = font.generateShapes( message, 1, 5 );
-		const geometry = new THREE.ShapeGeometry( shapes );
-		geometry.computeBoundingBox();
-		// const xMid = geometry.boundingBox.max.x - geometry.boundingBox.min.x;
-		const center = geometry.boundingBox.getCenter();
-		//geometry.translate( - center.x, 0, center.z );
-
-		// make shape ( N.B. edge view not visible )
-		textShape.fromGeometry( geometry );
-		const textShadow = new THREE.Mesh( textShape, matLite );
-		const text = new THREE.Mesh( textShape, matDark );
-
-		// TODO: Make this positioning responsive.
-		text.position.z = -8;
-		textShadow.position.z = -8;
-		textShadow.rotateX(-1.5708);
-		return { textShadow, text };
-	}
-
 	componentDidMount() {
 		this.setupThree();
 	}
@@ -197,15 +144,6 @@ class Scene extends Component {
 		return false;
 	}
 
-	renderText() {
-		const loader = new THREE.FontLoader();
-		loader.load( '../../assets/fonts/helvetiker_regular.typeface.json', font => {
-			const loadedFont = this.fontLoaderCallback(font)
-			this.scene.add(loadedFont.text);
-			this.scene.add(loadedFont.textShadow);
-			this.rerender();
-		});
-	}
 
 	renderButton() {
 		// Button will be a grid of dots that respond to click.
