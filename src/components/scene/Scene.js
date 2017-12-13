@@ -24,48 +24,48 @@ class Scene extends Component {
 		return intersects.length > 0;
 	}
 
-	handleClick() {
+	handleClick(clickTime) {
 		this.hasIntersect && this.setState({ 
 			transitionOn: this.state.diskRotating === false,
 			transitionOff: this.state.diskRotating === true,
-			diskRotating: !this.state.diskRotating,
+            diskRotating: !this.state.diskRotating,
+            clickTime,
 		});
 		this.hasIntersect && setTimeout(() => {
 			this.setState({
 				transitionOn: false,
 				transitionOff: false,
-				incrementedRotation: 0
+                incrementedRotation: 0,
+                clickTime,
 			});
 		}, 3000);
 	}
 
 	// Rotation
-	rotateDisk() {
+	rotateDisk(timer) {
+        const currentRotation = this.object.rotation.z;
+        const radius = this.object.geometry.parameters.radius;
 		if (this.state.diskRotating === true) {
-			const currentRotation = this.object.rotation.z;
-			let incrementedRotation = this.state.incrementedRotation + 0.04188790204
-			this.setState({
-				incrementedRotation
-			});
-			this.object.rotation.z = this.state.transitionOn === true
-				? incrementedRotation
-				:currentRotation + 0.125663706;
-			console.log('rotation-on-z', this.object.rotation.z);
-		/*
-		if (this.state.diskRotating === false) {
-			if (this.state.transitionOff === true) {
-				const currentRotation = this.object.rotation.z;
-				//const incrementedRotation = currentRotation - 0.04188790204;
-				let r2a = currentRotation + this.state.rad2Add - 0.04188790204 > 0 ? this.state.rad2Add - 0.04188790204 : 0;
-				this.setState({
-					rad2Add: r2a
-				});
-				this.object.rotation.z = r2a;
-			}
-		}
-		*/
+            if (this.state.transitionOn === true) {
+                const timeChange = timer - this.state.clickTime
+                const angularAcc = 3.14;
+                const angVel = angularAcc * timeChange
+                const angleChange = angVel * timeChange / radius;
+                this.object.rotation.z = angleChange;
+            } else {
+                this.object.rotation.z = currentRotation + 0.125663706;
+            }
+        }
+        if (this.state.diskRotating === false) {
+            if ( this.state.transitionOff === true ) {
+                const timeChange = timer - this.state.clickTime
+                const angularAcc = -3.14;
+                const angVel = angularAcc * timeChange
+                const angleChange = angVel * timeChange / radius;
+                this.object.rotation.z = angleChange;
+            }
+        }
 		this.rerender();
-		}
 	}
 
 	//@debounce
@@ -134,16 +134,15 @@ class Scene extends Component {
 
 	componentWillReceiveProps(nextProps) {
 		if (this.base) this.update();
-		// TODO: need a better method to assess click... perhaps time dimension...
-		if (nextProps.mouseDownX !== this.props.mouseDownX) this.handleClick();
+		// TODO: need a better method to assess click... currently if pointer does not move = no click perhaps time dimension...
+		if (nextProps.mouseDownX !== this.props.mouseDownX) this.handleClick(nextProps.timer);
 		// Only rotate if record is playing.
-		if (nextProps.timer !== this.props.timer) this.rotateDisk();
+		if (nextProps.timer !== this.props.timer) this.rotateDisk(nextProps.timer);
 	}
 
 	shouldComponentUpdate() {
 		return false;
 	}
-
 
 	renderButton() {
 		// Button will be a grid of dots that respond to click.

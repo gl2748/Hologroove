@@ -17,7 +17,7 @@ class SceneContainer extends Component {
 	// By periodically passing updated time prop to child, we can trigger an update.
 	// Increment by 0.04 every 40 ms.
 	// Therefore the timer prop on the child component will reflect time passed in seconds
-	// and the child component will update 25 times a second (a bit like regular film - geddit).
+	// and the child component will update 25 times a second.
 	timerFunc() {
 		setInterval(() => {
 			let updatedTimer = this.state.timer + 0.04;
@@ -37,7 +37,6 @@ class SceneContainer extends Component {
 	}
 	
 	mouseMove(e) {
-		//debugger
 		if (!this.down) {
 			let p = coords(e),
 				mouseX = ( p.x / window.innerWidth ) * 2 - 1,
